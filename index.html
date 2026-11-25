@@ -1,1 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Qué hay Colima? | Directorio Estatal de Comida, Bares y Entretenimiento</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --primary: #ea580c;
+      --primary-hover: #c2410c;
+      --comida-bg: #dcfce7;
+      --comida-text: #166534;
+      --bares-bg: #f3e8ff;
+      --bares-text: #6b21a8;
+      --entret-bg: #dbeafe;
+      --entret-text: #1e40af;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      padding: 1.75rem 1.25rem 2.25rem;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand span.badge-state {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-only {
+      display: none !important;
+    }
+
+    body.is-admin .admin-only {
+      display: inline-flex !important;
+    }
+
+    body.is-admin .admin-block {
+      display: block !important;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+    }
+
+    .status-pill.connected .status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 0.6rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-ghost-light {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.55rem 0.9rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-ghost-light:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-text h1 {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+      line-height: 1.2;
+    }
+
+    .hero-text p {
+      color: #cbd5e1;
+      max-width: 650px;
+      font-size: 0.98rem;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      margin: -1.35rem auto 1.75rem;
+      border: 1px solid var(--border);
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .cat-btn {
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      padding: 0.48rem 0.95rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cat-btn:hover {
+      border-color: #cbd5e1;
+      color: var(--text);
+    }
+
+    .cat-btn.active {
+      background: var(--text);
+      color: #ffffff;
+      border-color: var(--text);
+    }
+
+    .seed-banner {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    body.is-admin .seed-banner.visible {
+      display: flex;
+    }
+
+    .seed-banner p {
+      font-size: 0.92rem;
+      color: #9a3412;
+      font-weight: 500;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0 0.25rem;
+    }
+
+    .results-count {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1.25rem;
+      padding-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.09);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .cat-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .cat-comida { background: var(--comida-bg); color: var(--comida-text); }
+    .cat-bares { background: var(--bares-bg); color: var(--bares-text); }
+    .cat-entretenimiento { background: var(--entret-bg); color: var(--entret-text); }
+
+    .price-tag {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--surface-alt);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    .card-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: #334155;
+      margin-bottom: 0.9rem;
+    }
+
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+    }
+
+    .tag-chip {
+      font-size: 0.75rem;
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .admin-card-actions {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    body.is-admin .admin-card-actions {
+      display: grid;
+    }
+
+    .btn-outline {
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-alt);
+    }
+
+    .btn-danger {
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      background: #fef2f2;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background: #fee2e2;
+    }
+
+    .btn-wa {
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    .btn-wa:hover {
+      background: #15803d;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .admin-trigger {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-left: 0.4rem;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .admin-trigger:hover {
+      color: var(--text);
+    }
+
+    /* Modales */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      max-width: 520px;
+      width: 100%;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 500px) {
+      .form-row-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="top-bar">
+        <div class="brand">
+          <span>¿Qué hay Colima?</span>
+          <span class="badge-state">10 Municipios</span>
+        </div>
+        <div class="header-actions">
+          <div id="dbStatus" class="status-pill">
+            <span class="status-dot"></span>
+            <span id="dbStatusText">Conectando...</span>
+          </div>
+          <button class="btn-primary admin-only" onclick="abrirModalRegistro()">+ Registrar negocio</button>
+          <button class="btn-ghost-light admin-only" onclick="cerrarSesionAdmin()">Salir</button>
+        </div>
+      </div>
+      <div class="hero-text">
+        <h1>Descubre dónde comer, tomar algo y divertirte en Colima</h1>
+        <p>Explora restaurantes, fondas, mariscos, bares y centros de entretenimiento en todo el estado.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 0 1.25rem;">
+    <section class="filters-card">
+      <div class="filters-grid">
+        <div class="input-group">
+          <label for="searchInput">Buscar lugar, platillo o ambiente</label>
+          <input type="text" id="searchInput" placeholder="Ej. mariscos, terraza, tacos, pet-friendly..." />
+        </div>
+        <div class="input-group">
+          <label for="municipioSelect">Municipio</label>
+          <select id="municipioSelect">
+            <option value="todos">Todos los municipios (10)</option>
+            <option value="Armería">Armería</option>
+            <option value="Colima">Colima</option>
+            <option value="Comala">Comala</option>
+            <option value="Coquimatlán">Coquimatlán</option>
+            <option value="Cuauhtémoc">Cuauhtémoc</option>
+            <option value="Ixtlahuacán">Ixtlahuacán</option>
+            <option value="Manzanillo">Manzanillo</option>
+            <option value="Minatitlán">Minatitlán</option>
+            <option value="Tecomán">Tecomán</option>
+            <option value="Villa de Álvarez">Villa de Álvarez</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="precioSelect">Presupuesto</label>
+          <select id="precioSelect">
+            <option value="todos">Cualquier precio</option>
+            <option value="$">$ (Económico)</option>
+            <option value="$$">$$ (Moderado)</option>
+            <option value="$$$">$$$ (Especial)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="category-pills">
+        <button class="cat-btn active" data-cat="todos">Todos</button>
+        <button class="cat-btn" data-cat="comida">Comida</button>
+        <button class="cat-btn" data-cat="bares">Bares y Cantinas</button>
+        <button class="cat-btn" data-cat="entretenimiento">Entretenimiento</button>
+      </div>
+    </section>
+
+    <div id="seedBanner" class="seed-banner">
+      <p>Tu base de datos está vacía. ¿Quieres cargar 12 negocios de muestra en distintos municipios para empezar?</p>
+      <button id="btnSeed" class="btn-primary">Cargar 12 negocios de muestra</button>
+    </div>
+
+    <div class="results-header">
+      <span id="resultsCount" class="results-count">Cargando establecimientos...</span>
+    </div>
+
+    <section id="cardsGrid" class="cards-grid"></section>
+  </main>
+
+  <footer>
+    <span>¿Qué hay Colima? · Directorio estatal</span>
+    <button class="admin-trigger" onclick="abrirModalLogin()" title="Acceso administrador">🔒</button>
+  </footer>
+
+  <!-- Modal Detalles -->
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="detNombre" style="font-size: 1.25rem;"></h2>
+        <button class="close-btn" onclick="cerrarModal('detailModal')">&times;</button>
+      </div>
+      <div id="detContenido" style="display: grid; gap: 0.75rem; font-size: 0.95rem;"></div>
+    </div>
+  </div>
+
+  <!-- Modal Registro / Edición (Solo Admin) -->
+  <div id="registerModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="regModalTitle" style="font-size: 1.2rem;">Registrar establecimiento</h2>
+        <button class="close-btn" onclick="cerrarModal('registerModal')">&times;</button>
+      </div>
+      <form id="registerForm" class="form-grid">
+        <input type="hidden" id="editDocId" />
+        <div class="input-group">
+          <label>Nombre del negocio *</label>
+          <input type="text" id="regNombre" required placeholder="Ej. Mariscos El Puerto" />
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Municipio *</label>
+            <select id="regMunicipio" required>
+              <option value="Colima">Colima</option>
+              <option value="Manzanillo">Manzanillo</option>
+              <option value="Villa de Álvarez">Villa de Álvarez</option>
+              <option value="Comala">Comala</option>
+              <option value="Tecomán">Tecomán</option>
+              <option value="Armería">Armería</option>
+              <option value="Coquimatlán">Coquimatlán</option>
+              <option value="Cuauhtémoc">Cuauhtémoc</option>
+              <option value="Ixtlahuacán">Ixtlahuacán</option>
+              <option value="Minatitlán">Minatitlán</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Categoría *</label>
+            <select id="regCategoria" required>
+              <option value="comida">Comida</option>
+              <option value="bares">Bares y Cantinas</option>
+              <option value="entretenimiento">Entretenimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Especialidad / Giro *</label>
+            <input type="text" id="regSubcategoria" required placeholder="Ej. Tacos, Cervecería, Cine..." />
+          </div>
+          <div class="input-group">
+            <label>Rango de precios *</label>
+            <select id="regPrecio" required>
+              <option value="$">$ (Económico)</option>
+              <option value="$$" selected>$$ (Moderado)</option>
+              <option value="$$$">$$$ (Especial)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Zona o dirección *</label>
+          <input type="text" id="regZona" required placeholder="Colonia, calle o referencia" />
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Horario</label>
+            <input type="text" id="regHorario" placeholder="Ej. 13:00 - 23:00" />
+          </div>
+          <div class="input-group">
+            <label>WhatsApp (10 dígitos)</label>
+            <input type="tel" id="regTelefono" placeholder="Ej. 3141234567" />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Descripción breve *</label>
+          <textarea id="regDescripcion" rows="2" required placeholder="¿Qué hace especial a este lugar?"></textarea>
+        </div>
+        <div class="input-group">
+          <label>Etiquetas (separadas por coma)</label>
+          <input type="text" id="regEtiquetas" placeholder="Ej. Familiar, Terraza, Música en vivo" />
+        </div>
+        <button type="submit" id="btnSubmitReg" class="btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.25rem;">
+          Publicar en el directorio
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Login Admin -->
+  <div id="loginModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.15rem;">Acceso de administrador</h2>
+        <button class="close-btn" onclick="cerrarModal('loginModal')">&times;</button>
+      </div>
+      <form id="loginForm" class="form-grid">
+        <div class="input-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="loginEmail" required placeholder="tu-correo@ejemplo.com" />
+        </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" id="loginPass" required placeholder="••••••••" />
+        </div>
+        <p id="loginError" style="color: #b91c1c; font-size: 0.85rem; display: none;"></p>
+        <button type="submit" id="btnLoginSubmit" class="btn-primary" style="width: 100%; padding: 0.75rem;">
+          Iniciar sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdCGHggoUk4d2SjOOMtataZESOB3_lzlc",
+      authDomain: "que-hay-colima.firebaseapp.com",
+      projectId: "que-hay-colima",
+      storageBucket: "que-hay-colima.firebasestorage.app",
+      messagingSenderId: "630942232447",
+      appId: "1:630942232447:web:93e0a9acede40bce60f44a",
+      measurementId: "G-NM23M889Z9"
+    };
+
+    const negociosMuestra = [
+      {
+        nombre: "La Ola Mariscos y Zarandeado",
+        municipio: "Manzanillo",
+        categoria: "comida",
+        subcategoria: "Mariscos y Pescados",
+        precio: "$$",
+        zona: "Blvd. Miguel de la Madrid, Salagua",
+        horario: "12:00 - 20:00",
+        telefono: "523141234567",
+        descripcion: "Ceviche estilo Colima, pescado zarandeado a las brasas y vista directa a la bahía.",
+        etiquetas: ["Vista al mar", "Familiar", "Estacionamiento"]
+      },
+      {
+        nombre: "Los Portales de Comala",
+        municipio: "Comala",
+        categoria: "comida",
+        subcategoria: "Botanero Tradicional",
+        precio: "$$",
+        zona: "Centro Histórico, frente al jardín principal",
+        horario: "11:00 - 19:00",
+        telefono: "523121234568",
+        descripcion: "Botanas típicas colimenses incluidas con tu bebida, tatemado, sopitos y música de mariachi en vivo.",
+        etiquetas: ["Pueblo Mágico", "Música en vivo", "Tradicional"]
+      },
+      {
+        nombre: "Cervecería Volcán Taproom",
+        municipio: "Colima",
+        categoria: "bares",
+        subcategoria: "Cerveza Artesanal",
+        precio: "$$",
+        zona: "Av. Constitución, Zona Norte",
+        horario: "16:00 - 01:00",
+        telefono: "523121234569",
+        descripcion: "Cervezas artesanales locales de barril, hamburguesas al carbón y terraza abierta.",
+        etiquetas: ["Terraza", "Pet-friendly", "Cerveza artesanal"]
+      },
+      {
+        nombre: "Malecón Mirador & Kayak",
+        municipio: "Manzanillo",
+        categoria: "entretenimiento",
+        subcategoria: "Actividades Acuáticas",
+        precio: "$$",
+        zona: "Playa Las Brisas / Laguna",
+        horario: "08:00 - 18:00",
+        telefono: "523141234570",
+        descripcion: "Renta de kayaks, paddle board al amanecer y recorridos guiados por la bahía.",
+        etiquetas: ["Al aire libre", "Aventura", "Familiar"]
+      },
+      {
+        nombre: "Cenaduría La Villa",
+        municipio: "Villa de Álvarez",
+        categoria: "comida",
+        subcategoria: "Antojitos Colimenses",
+        precio: "$",
+        zona: "Av. Enrique Corona Morfín",
+        horario: "18:30 - 23:30",
+        telefono: "523121234571",
+        descripcion: "Sopitos, tostadas de pata y lomo, pozole seco y enchiladas dulces tradicionales.",
+        etiquetas: ["Económico", "Cena", "Familiar"]
+      },
+      {
+        nombre: "El Salto Cascadas & Eco-Parque",
+        municipio: "Minatitlán",
+        categoria: "entretenimiento",
+        subcategoria: "Ecoturismo y Naturaleza",
+        precio: "$",
+        zona: "Camino a El Salto, Minatitlán",
+        horario: "09:00 - 17:30",
+        telefono: "523141234572",
+        descripcion: "Miradores naturales, senderos, área de picnic y pozas de agua fresca rodeadas de montaña.",
+        etiquetas: ["Naturaleza", "Fin de semana", "Familiar"]
+      },
+      {
+        nombre: "La Cantina del Jardín",
+        municipio: "Tecomán",
+        categoria: "bares",
+        subcategoria: "Bar y Botanero",
+        precio: "$$",
+        zona: "Zona Centro, Tecomán",
+        horario: "14:00 - 00:00",
+        telefono: "523131234573",
+        descripcion: "Coctelería con limón de Tecomán, micheladas preparadas y pantallas para eventos deportivos.",
+        etiquetas: ["Deportes en vivo", "Botanas", "Aire acondicionado"]
+      },
+      {
+        nombre: "Ramadas El Paraíso",
+        municipio: "Armería",
+        categoria: "comida",
+        subcategoria: "Mariscos frente al mar",
+        precio: "$$",
+        zona: "Playa El Paraíso",
+        horario: "10:00 - 19:00",
+        telefono: "523131234574",
+        descripcion: "Pescado frito recién salido, camarones al coco y descanso en hamacas frente al oleaje.",
+        etiquetas: ["Playa", "Familiar", "Mariscos"]
+      },
+      {
+        nombre: "Balneario Los Amiales",
+        municipio: "Coquimatlán",
+        categoria: "entretenimiento",
+        subcategoria: "Balneario Natural",
+        precio: "$",
+        zona: "Carretera a Jala, Coquimatlán",
+        horario: "09:00 - 18:00",
+        telefono: "523121234575",
+        descripcion: "Nacimientos de agua cristalina, asadores familiares y espacios amplios bajo los árboles.",
+        etiquetas: ["Agua natural", "Asadores", "Familiar"]
+      },
+      {
+        nombre: "Café Altura del Volcán",
+        municipio: "Cuauhtémoc",
+        categoria: "comida",
+        subcategoria: "Cafetería y Panadería",
+        precio: "$",
+        zona: "Centro, Cuauhtémoc",
+        horario: "08:00 - 21:00",
+        telefono: "523121234576",
+        descripcion: "Café de altura de la región, pan artesanal recién horneado y desayunos campestres.",
+        etiquetas: ["Café local", "Tranquilo", "Desayunos"]
+      },
+      {
+        nombre: "Grutas de San Gabriel",
+        municipio: "Ixtlahuacán",
+        categoria: "entretenimiento",
+        subcategoria: "Recorridos Naturales",
+        precio: "$",
+        zona: "Comunidad de San Gabriel",
+        horario: "09:00 - 16:00",
+        telefono: "523131234577",
+        descripcion: "Exploración guiada por formaciones rocosas subterráneas y rutas de senderismo.",
+        etiquetas: ["Aventura", "Guías locales", "Naturaleza"]
+      },
+      {
+        nombre: "Skybar Bahía Azul",
+        municipio: "Manzanillo",
+        categoria: "bares",
+        subcategoria: "Rooftop Lounge",
+        precio: "$$$",
+        zona: "Península de Santiago",
+        horario: "18:00 - 02:00",
+        telefono: "523141234578",
+        descripcion: "Mixología de autor, DJ los fines de semana y vista panorámica nocturna de la bahía.",
+        etiquetas: ["Vista panorámica", "Coctelería", "Nocturno"]
+      }
+    ];
+
+    let db = null;
+    let auth = null;
+    let establecimientos = [];
+    let categoriaActiva = "todos";
+
+    const statusPill = document.getElementById("dbStatus");
+    const statusText = document.getElementById("dbStatusText");
+    const seedBanner = document.getElementById("seedBanner");
+    const cardsGrid = document.getElementById("cardsGrid");
+    const resultsCount = document.getElementById("resultsCount");
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.body.classList.add("is-admin");
+          statusPill.classList.add("connected");
+          statusText.textContent = "Admin activo";
+        } else {
+          document.body.classList.remove("is-admin");
+          statusText.textContent = "En línea";
+        }
+      });
+
+      const q = query(collection(db, "establecimientos"), orderBy("nombre"));
+      onSnapshot(q, (snapshot) => {
+        statusPill.classList.add("connected");
+        if (!auth.currentUser) {
+          statusText.textContent = "En línea";
+        }
+
+        establecimientos = snapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        }));
+
+        if (establecimientos.length === 0) {
+          seedBanner.classList.add("visible");
+        } else {
+          seedBanner.classList.remove("visible");
+        }
+
+        renderizar();
+      }, (error) => {
+        console.error("Error Firestore:", error);
+        statusText.textContent = "Sin conexión";
+      });
+    } catch (err) {
+      console.error("Error inicializando Firebase:", err);
+      statusText.textContent = "Error de config";
+    }
+
+    document.getElementById("btnSeed").addEventListener("click", async () => {
+      if (!db || !auth.currentUser) return;
+      const btn = document.getElementById("btnSeed");
+      btn.disabled = true;
+      btn.textContent = "Cargando negocios...";
+      try {
+        for (const item of negociosMuestra) {
+          await addDoc(collection(db, "establecimientos"), {
+            ...item,
+            creadoEn: serverTimestamp()
+          });
+        }
+        seedBanner.classList.remove("visible");
+      } catch (e) {
+        alert("No se pudieron cargar los datos. Verifica que iniciaste sesión con el correo autorizado en las reglas.");
+        console.error(e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Cargar 12 negocios de muestra";
+      }
+    });
+
+    function renderizar() {
+      const rawSearch = document.getElementById("searchInput").value.trim();
+      if (rawSearch.toLowerCase() === "admin") {
+        document.getElementById("searchInput").value = "";
+        abrirModalLogin();
+        return;
+      }
+
+      const texto = rawSearch.toLowerCase();
+      const municipio = document.getElementById("municipioSelect").value;
+      const precio = document.getElementById("precioSelect").value;
+
+      const filtrados = establecimientos.filter(item => {
+        const matchCat = categoriaActiva === "todos" || item.categoria === categoriaActiva;
+        const matchMun = municipio === "todos" || item.municipio === municipio;
+        const matchPre = precio === "todos" || item.precio === precio;
+        const etiquetasStr = (item.etiquetas || []).join(" ").toLowerCase();
+        const matchTxt = !texto ||
+          (item.nombre || "").toLowerCase().includes(texto) ||
+          (item.subcategoria || "").toLowerCase().includes(texto) ||
+          (item.zona || "").toLowerCase().includes(texto) ||
+          (item.descripcion || "").toLowerCase().includes(texto) ||
+          etiquetasStr.includes(texto);
+
+        return matchCat && matchMun && matchPre && matchTxt;
+      });
+
+      resultsCount.textContent = `${filtrados.length} ${filtrados.length === 1 ? "establecimiento encontrado" : "establecimientos encontrados"}`;
+
+      if (filtrados.length === 0) {
+        cardsGrid.innerHTML = `
+          <div class="empty-state">
+            <h3 style="margin-bottom: 0.4rem; color: var(--text);">No encontramos lugares con esos filtros</h3>
+            <p>Prueba cambiando el municipio o quitando algún filtro.</p>
+          </div>
+        `;
+        return;
+      }
+
+      cardsGrid.innerHTML = filtrados.map((item, idx) => {
+        const catLabel = item.categoria === "comida" ? "Comida" : item.categoria === "bares" ? "Bar / Cantina" : "Entretenimiento";
+        const catClass = `cat-${item.categoria}`;
+        const telLimpio = (item.telefono || "").replace(/\D/g, "");
+        const waNum = telLimpio.length === 10 ? `52${telLimpio}` : telLimpio;
+        const waUrl = waNum ? `https://wa.me/${waNum}?text=${encodeURIComponent(`Hola, vi ${item.nombre} en ¿Qué hay Colima?`)}` : null;
+
+        return `
+          <article class="card">
+            <div>
+              <div class="card-top">
+                <span class="cat-tag ${catClass}">${catLabel}</span>
+                <span class="price-tag">${item.precio || "$$"}</span>
+              </div>
+              <h3>${item.nombre}</h3>
+              <div class="card-sub">${item.subcategoria || ""} · ${item.municipio}</div>
+              <div class="card-meta">
+                <span>📍 ${item.zona || item.municipio}</span>
+                ${item.horario ? `<span>🕒 ${item.horario}</span>` : ""}
+              </div>
+              <p class="card-desc">${item.descripcion || ""}</p>
+              <div class="tags-row">
+                ${(item.etiquetas || []).map(tag => `<span class="tag-chip">${tag}</span>`).join("")}
+              </div>
+            </div>
+            <div>
+              <div class="card-actions">
+                <button class="btn-outline" onclick="verDetalle(${idx})">Ver detalles</button>
+                ${waUrl ? `<a class="btn-wa" href="${waUrl}" target="_blank" rel="noopener">WhatsApp</a>` : `<a class="btn-outline" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.nombre + ' ' + item.municipio + ' Colima')}" target="_blank" rel="noopener">Mapa</a>`}
+              </div>
+              <div class="admin-card-actions">
+                <button class="btn-outline" onclick="editarNegocio(${idx})">Editar</button>
+                <button class="btn-danger" onclick="borrarNegocio('${item.id}', '${(item.nombre || "").replace(/'/g, "\\'")}')">Borrar</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      window._filtradosActuales = filtrados;
+    }
+
+    window.verDetalle = (idx) => {
+      const item = window._filtradosActuales[idx];
+      if (!item) return;
+      document.getElementById("detNombre").textContent = item.nombre;
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.nombre + " " + (item.zona || "") + " " + item.municipio + " Colima")}`;
+      const telLimpio = (item.telefono || "").replace(/\D/g, "");
+      const waNum = telLimpio.length === 10 ? `52${telLimpio}` : telLimpio;
+
+      document.getElementById("detContenido").innerHTML = `
+        <p><strong>Municipio:</strong> ${item.municipio}</p>
+        <p><strong>Giro:</strong> ${item.subcategoria} (${item.precio || "$$"})</p>
+        <p><strong>Ubicación:</strong> ${item.zona || "Consultar en mapa"}</p>
+        <p><strong>Horario:</strong> ${item.horario || "No especificado"}</p>
+        <p>${item.descripcion || ""}</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.5rem;">
+          <a class="btn-outline" href="${mapsUrl}" target="_blank" rel="noopener">Abrir en Google Maps</a>
+          ${waNum ? `<a class="btn-wa" href="https://wa.me/${waNum}" target="_blank" rel="noopener">Enviar WhatsApp</a>` : ""}
+        </div>
+      `;
+      document.getElementById("detailModal").classList.add("open");
+    };
+
+    window.abrirModalRegistro = () => {
+      document.getElementById("editDocId").value = "";
+      document.getElementById("regModalTitle").textContent = "Registrar establecimiento";
+      document.getElementById("btnSubmitReg").textContent = "Publicar en el directorio";
+      document.getElementById("registerForm").reset();
+      document.getElementById("registerModal").classList.add("open");
+    };
+
+    window.editarNegocio = (idx) => {
+      const item = window._filtradosActuales[idx];
+      if (!item) return;
+      document.getElementById("editDocId").value = item.id;
+      document.getElementById("regModalTitle").textContent = "Editar establecimiento";
+      document.getElementById("btnSubmitReg").textContent = "Guardar cambios";
+      document.getElementById("regNombre").value = item.nombre || "";
+      document.getElementById("regMunicipio").value = item.municipio || "Colima";
+      document.getElementById("regCategoria").value = item.categoria || "comida";
+      document.getElementById("regSubcategoria").value = item.subcategoria || "";
+      document.getElementById("regPrecio").value = item.precio || "$$";
+      document.getElementById("regZona").value = item.zona || "";
+      document.getElementById("regHorario").value = item.horario || "";
+      document.getElementById("regTelefono").value = item.telefono || "";
+      document.getElementById("regDescripcion").value = item.descripcion || "";
+      document.getElementById("regEtiquetas").value = (item.etiquetas || []).join(", ");
+      document.getElementById("registerModal").classList.add("open");
+    };
+
+    window.borrarNegocio = async (id, nombre) => {
+      if (!db || !auth.currentUser) return;
+      if (!confirm(`¿Seguro que quieres borrar "${nombre}" del directorio?`)) return;
+      try {
+        await deleteDoc(doc(db, "establecimientos", id));
+      } catch (err) {
+        alert("No se pudo borrar. Verifica tus permisos de administrador.");
+        console.error(err);
+      }
+    };
+
+    window.abrirModalLogin = () => {
+      document.getElementById("loginError").style.display = "none";
+      document.getElementById("loginModal").classList.add("open");
+    };
+
+    window.cerrarSesionAdmin = async () => {
+      if (auth) await signOut(auth);
+    };
+
+    window.cerrarModal = (id) => {
+      document.getElementById(id).classList.remove("open");
+    };
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!auth) return;
+      const btn = document.getElementById("btnLoginSubmit");
+      const errEl = document.getElementById("loginError");
+      btn.disabled = true;
+      btn.textContent = "Entrando...";
+      errEl.style.display = "none";
+
+      try {
+        const email = document.getElementById("loginEmail").value.trim();
+        const pass = document.getElementById("loginPass").value;
+        await signInWithEmailAndPassword(auth, email, pass);
+        document.getElementById("loginForm").reset();
+        cerrarModal("loginModal");
+      } catch (err) {
+        errEl.textContent = "Correo o contraseña incorrectos.";
+        errEl.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Iniciar sesión";
+      }
+    });
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!db || !auth.currentUser) {
+        alert("Debes iniciar sesión como administrador.");
+        return;
+      }
+      const btn = document.getElementById("btnSubmitReg");
+      const editId = document.getElementById("editDocId").value;
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      const etiquetasRaw = document.getElementById("regEtiquetas").value;
+      const etiquetas = etiquetasRaw
+        ? etiquetasRaw.split(",").map(t => t.trim()).filter(Boolean)
+        : [];
+
+      const datos = {
+        nombre: document.getElementById("regNombre").value.trim(),
+        municipio: document.getElementById("regMunicipio").value,
+        categoria: document.getElementById("regCategoria").value,
+        subcategoria: document.getElementById("regSubcategoria").value.trim(),
+        precio: document.getElementById("regPrecio").value,
+        zona: document.getElementById("regZona").value.trim(),
+        horario: document.getElementById("regHorario").value.trim(),
+        telefono: document.getElementById("regTelefono").value.trim(),
+        descripcion: document.getElementById("regDescripcion").value.trim(),
+        etiquetas
+      };
+
+      try {
+        if (editId) {
+          await updateDoc(doc(db, "establecimientos", editId), datos);
+        } else {
+          await addDoc(collection(db, "establecimientos"), {
+            ...datos,
+            creadoEn: serverTimestamp()
+          });
+        }
+        document.getElementById("registerForm").reset();
+        cerrarModal("registerModal");
+      } catch (err) {
+        alert("Error al guardar. Asegúrate de que tu correo coincida con las reglas de Firestore.");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = editId ? "Guardar cambios" : "Publicar en el directorio";
+      }
+    });
+
+    document.getElementById("searchInput").addEventListener("input", renderizar);
+    document.getElementById("municipioSelect").addEventListener("change", renderizar);
+    document.getElementById("precioSelect").addEventListener("change", renderizar);
+
+    document.querySelectorAll(".cat-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        categoriaActiva = btn.dataset.cat;
+        renderizar();
+      });
+    });
+  </script>
+</body>
+</html>
 
