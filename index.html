@@ -96,10 +96,6 @@
       display: inline-flex !important;
     }
 
-    body.is-admin .admin-block {
-      display: block !important;
-    }
-
     .status-pill {
       display: inline-flex;
       align-items: center;
@@ -219,6 +215,14 @@
       background: var(--surface);
       outline: none;
       transition: border-color 0.2s;
+    }
+
+    textarea.json-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      min-height: 220px;
+      resize: vertical;
     }
 
     input:focus,
@@ -519,6 +523,10 @@
       overflow-y: auto;
     }
 
+    .modal.modal-wide {
+      max-width: 660px;
+    }
+
     .modal-header {
       display: flex;
       justify-content: space-between;
@@ -553,6 +561,35 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .helper-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--surface-alt);
+      padding: 0.65rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .msg-error {
+      color: #b91c1c;
+      font-size: 0.85rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .msg-success {
+      color: #166534;
+      font-size: 0.85rem;
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -570,6 +607,7 @@
             <span id="dbStatusText">Conectando...</span>
           </div>
           <button class="btn-primary admin-only" onclick="abrirModalRegistro()">+ Registrar negocio</button>
+          <button class="btn-ghost-light admin-only" onclick="abrirModalJson()">Importar JSON</button>
           <button class="btn-ghost-light admin-only" onclick="cerrarSesionAdmin()">Salir</button>
         </div>
       </div>
@@ -731,6 +769,39 @@
     </div>
   </div>
 
+  <!-- Modal Carga Masiva JSON (Solo Admin) -->
+  <div id="jsonModal" class="modal-backdrop">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2 style="font-size: 1.2rem;">Importar negocios en lote (JSON)</h2>
+        <button class="close-btn" onclick="cerrarModal('jsonModal')">&times;</button>
+      </div>
+      <div class="form-grid">
+        <p class="helper-note">
+          Pega un arreglo JSON (<code>[...]</code>) o un objeto (<code>{...}</code>). Campos admitidos:
+          <code>nombre</code>*, <code>municipio</code>* (uno de los 10 de Colima), <code>categoria</code>* (<code>comida</code>, <code>bares</code> o <code>entretenimiento</code>), <code>subcategoria</code>*, <code>precio</code> (<code>$</code>, <code>$$</code>, <code>$$$</code>), <code>zona</code>*, <code>horario</code>, <code>telefono</code>, <code>descripcion</code>*, <code>etiquetas</code> (arreglo de texto o texto separado por comas).
+        </p>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="btn-outline" onclick="insertarEjemploJson()">Cargar ejemplo JSON</button>
+          <button type="button" class="btn-outline" onclick="limpiarJson()">Limpiar</button>
+        </div>
+
+        <div class="input-group">
+          <label for="jsonInput">Contenido JSON</label>
+          <textarea id="jsonInput" class="json-box" placeholder='[&#10;  {&#10;    "nombre": "Mariscos Las Brisas",&#10;    "municipio": "Manzanillo",&#10;    "categoria": "comida",&#10;    "subcategoria": "Mariscos",&#10;    "precio": "$$",&#10;    "zona": "Playa Las Brisas",&#10;    "horario": "11:00 - 19:00",&#10;    "telefono": "3141000000",&#10;    "descripcion": "Pescado zarandeado y ceviches frescos.",&#10;    "etiquetas": ["Frente al mar", "Familiar"]&#10;  }&#10;]'></textarea>
+        </div>
+
+        <div id="jsonError" class="msg-error"></div>
+        <div id="jsonSuccess" class="msg-success"></div>
+
+        <button type="button" id="btnSubmitJson" class="btn-primary" style="width: 100%; padding: 0.75rem;" onclick="importarJsonLote()">
+          Subir negocios a Firestore
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Login Admin -->
   <div id="loginModal" class="modal-backdrop">
     <div class="modal" style="max-width: 400px;">
@@ -769,6 +840,22 @@
       appId: "1:630942232447:web:93e0a9acede40bce60f44a",
       measurementId: "G-NM23M889Z9"
     };
+
+    const MUNICIPIOS_VALIDOS = [
+      "Armería",
+      "Colima",
+      "Comala",
+      "Coquimatlán",
+      "Cuauhtémoc",
+      "Ixtlahuacán",
+      "Manzanillo",
+      "Minatitlán",
+      "Tecomán",
+      "Villa de Álvarez"
+    ];
+
+    const CATEGORIAS_VALIDAS = ["comida", "bares", "entretenimiento"];
+    const PRECIOS_VALIDOS = ["$", "$$", "$$$"];
 
     const negociosMuestra = [
       {
@@ -971,6 +1058,177 @@
       console.error("Error inicializando Firebase:", err);
       statusText.textContent = "Error de config";
     }
+
+    function normalizarEtiquetas(raw) {
+      if (Array.isArray(raw)) {
+        return raw.map(t => String(t).trim()).filter(Boolean);
+      }
+      if (typeof raw === "string") {
+        return raw.split(",").map(t => t.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
+    function validarYFormatearNegocio(raw, indice) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        throw new Error(`Elemento #${indice + 1}: debe ser un objeto JSON válido.`);
+      }
+
+      const nombre = String(raw.nombre || "").trim();
+      const municipio = String(raw.municipio || "").trim();
+      const categoria = String(raw.categoria || "").trim().toLowerCase();
+      const subcategoria = String(raw.subcategoria || "").trim();
+      const precio = String(raw.precio || "$$").trim();
+      const zona = String(raw.zona || "").trim();
+      const horario = String(raw.horario || "").trim();
+      const telefono = String(raw.telefono || "").trim();
+      const descripcion = String(raw.descripcion || "").trim();
+      const etiquetas = normalizarEtiquetas(raw.etiquetas);
+
+      if (!nombre) throw new Error(`Elemento #${indice + 1}: falta "nombre".`);
+      if (!MUNICIPIOS_VALIDOS.includes(municipio)) {
+        throw new Error(`Elemento #${indice + 1} ("${nombre}"): municipio "${municipio}" no válido. Usa uno de los 10 municipios de Colima.`);
+      }
+      if (!CATEGORIAS_VALIDAS.includes(categoria)) {
+        throw new Error(`Elemento #${indice + 1} ("${nombre}"): categoría "${categoria}" no válida. Usa comida, bares o entretenimiento.`);
+      }
+      if (!subcategoria) throw new Error(`Elemento #${indice + 1} ("${nombre}"): falta "subcategoria".`);
+      if (!PRECIOS_VALIDOS.includes(precio)) {
+        throw new Error(`Elemento #${indice + 1} ("${nombre}"): precio "${precio}" no válido. Usa $, $$ o $$$.`);
+      }
+      if (!zona) throw new Error(`Elemento #${indice + 1} ("${nombre}"): falta "zona".`);
+      if (!descripcion) throw new Error(`Elemento #${indice + 1} ("${nombre}"): falta "descripcion".`);
+
+      return {
+        nombre,
+        municipio,
+        categoria,
+        subcategoria,
+        precio,
+        zona,
+        horario,
+        telefono,
+        descripcion,
+        etiquetas
+      };
+    }
+
+    window.abrirModalJson = () => {
+      if (!auth || !auth.currentUser) {
+        alert("Debes iniciar sesión como administrador.");
+        return;
+      }
+      document.getElementById("jsonError").style.display = "none";
+      document.getElementById("jsonSuccess").style.display = "none";
+      document.getElementById("jsonModal").classList.add("open");
+    };
+
+    window.limpiarJson = () => {
+      document.getElementById("jsonInput").value = "";
+      document.getElementById("jsonError").style.display = "none";
+      document.getElementById("jsonSuccess").style.display = "none";
+    };
+
+    window.insertarEjemploJson = () => {
+      const ejemplo = [
+        {
+          nombre: "Tacos El Abuelo",
+          municipio: "Colima",
+          categoria: "comida",
+          subcategoria: "Tacos y Grill",
+          precio: "$",
+          zona: "Colonia Centro, Colima",
+          horario: "19:00 - 00:30",
+          telefono: "3121550001",
+          descripcion: "Tacos al pastor, bistec y quesadillas con salsas hechas en casa.",
+          etiquetas: ["Cena", "Económico"]
+        },
+        {
+          nombre: "Mezcalería El Llano",
+          municipio: "Comala",
+          categoria: "bares",
+          subcategoria: "Mezcal y Cocteles",
+          precio: "$$",
+          zona: "Centro de Comala",
+          horario: "15:00 - 23:30",
+          telefono: "3121550002",
+          descripcion: "Degustaciones de mezcal artesanal y botanas regionales en patio fresco.",
+          etiquetas: ["Terraza", "Pueblo Mágico"]
+        }
+      ];
+      document.getElementById("jsonInput").value = JSON.stringify(ejemplo, null, 2);
+      document.getElementById("jsonError").style.display = "none";
+      document.getElementById("jsonSuccess").style.display = "none";
+    };
+
+    window.importarJsonLote = async () => {
+      if (!db || !auth || !auth.currentUser) {
+        alert("Debes iniciar sesión como administrador.");
+        return;
+      }
+
+      const errEl = document.getElementById("jsonError");
+      const okEl = document.getElementById("jsonSuccess");
+      const btn = document.getElementById("btnSubmitJson");
+      errEl.style.display = "none";
+      okEl.style.display = "none";
+
+      const rawText = document.getElementById("jsonInput").value.trim();
+      if (!rawText) {
+        errEl.textContent = "Pega un JSON válido antes de subir.";
+        errEl.style.display = "block";
+        return;
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (e) {
+        errEl.textContent = `JSON mal formado: ${e.message}`;
+        errEl.style.display = "block";
+        return;
+      }
+
+      const lista = Array.isArray(parsed) ? parsed : [parsed];
+      if (lista.length === 0) {
+        errEl.textContent = "El arreglo JSON está vacío.";
+        errEl.style.display = "block";
+        return;
+      }
+
+      let preparados;
+      try {
+        preparados = lista.map((item, idx) => validarYFormatearNegocio(item, idx));
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = `Subiendo ${preparados.length} negocio(s)...`;
+
+      let subidos = 0;
+      try {
+        for (const negocio of preparados) {
+          await addDoc(collection(db, "establecimientos"), {
+            ...negocio,
+            creadoEn: serverTimestamp()
+          });
+          subidos++;
+        }
+        okEl.textContent = `Se subieron ${subidos} negocio(s) correctamente a Firestore.`;
+        okEl.style.display = "block";
+        document.getElementById("jsonInput").value = "";
+      } catch (e) {
+        console.error(e);
+        errEl.textContent = `Se subieron ${subidos} de ${preparados.length}. Error de permisos o red al continuar.`;
+        errEl.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Subir negocios a Firestore";
+      }
+    };
 
     document.getElementById("btnSeed").addEventListener("click", async () => {
       if (!db || !auth.currentUser) return;
@@ -1184,9 +1442,7 @@
       btn.textContent = "Guardando...";
 
       const etiquetasRaw = document.getElementById("regEtiquetas").value;
-      const etiquetas = etiquetasRaw
-        ? etiquetasRaw.split(",").map(t => t.trim()).filter(Boolean)
-        : [];
+      const etiquetas = normalizarEtiquetas(etiquetasRaw);
 
       const datos = {
         nombre: document.getElementById("regNombre").value.trim(),
@@ -1236,4 +1492,3 @@
   </script>
 </body>
 </html>
-
